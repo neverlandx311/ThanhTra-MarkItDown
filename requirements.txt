@@ -1,0 +1,4 @@
+markitdown
+customtkinter
+pymupdf
+pyinstaller
