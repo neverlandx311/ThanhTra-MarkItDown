@@ -1,3 +1,5 @@
 @echo off
-python -m pip install -r requirements.txt
-python -m pyinstaller --onefile src\app.py
+echo Building ThanhTra-MarkItDown EXE...
+call .venv\Scripts\activate.bat
+python build.py
+pause

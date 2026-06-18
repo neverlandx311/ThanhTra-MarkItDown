@@ -1,4 +1,7 @@
-markitdown
-customtkinter
-pymupdf
-pyinstaller
+markitdown[pdf,docx,xlsx,pptx]==0.1.6
+customtkinter>=5.2.0
+pymupdf>=1.24.0
+pyinstaller>=6.0
+
+# numpy 2.x co loi voi PyInstaller - pin xuong 1.x
+numpy>=1.24,<2.0
