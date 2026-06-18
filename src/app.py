@@ -175,12 +175,17 @@ class SingleFileTab(ctk.CTkFrame):
     def _open_output(self):
         if self._last_output_dir:
             _open_folder(self._last_output_dir)
+            self.after(300, self.winfo_toplevel().lift)
 
     def _log(self, msg: str):
         self.log_box.configure(state="normal")
         self.log_box.insert("end", msg + "\n")
         self.log_box.see("end")
         self.log_box.configure(state="disabled")
+
+    def _enable_open_btn(self):
+        self.btn_open.configure(state="normal", fg_color=("#3B8ED0", "#1F6AA5"),
+                                hover_color=("#36719F", "#144870"))
 
     def _convert(self):
         inp = self.input_var.get().strip()
@@ -197,7 +202,7 @@ class SingleFileTab(ctk.CTkFrame):
             return
 
         self.btn_convert.configure(state="disabled")
-        self.btn_open.configure(state="disabled")
+        self.btn_open.configure(state="disabled", fg_color="gray40", hover_color="gray30")
         self.progress.set(0.2)
         save_config({"single_input": inp, "single_output": out})
 
@@ -210,7 +215,7 @@ class SingleFileTab(ctk.CTkFrame):
                 self._last_output_dir = str(Path(out).parent)
                 self.after(0, self.progress.set, 1.0)
                 self.after(0, self._log, f"✅ Thành công → {out}")
-                self.after(0, self.btn_open.configure, {"state": "normal"})
+                self.after(0, self._enable_open_btn)
             except PdfScanError:
                 self.after(0, self._log,
                     f"⏭ Bỏ qua: PDF scan — cần OCR (tính năng v2.0)")
@@ -219,7 +224,7 @@ class SingleFileTab(ctk.CTkFrame):
                 self.after(0, self._log, f"❌ Lỗi: {_friendly_error(ex)}")
                 self.after(0, self.progress.set, 0)
             finally:
-                self.after(0, self.btn_convert.configure, {"state": "normal"})
+                self.after(0, lambda: self.btn_convert.configure(state="normal"))
 
         threading.Thread(target=run, daemon=True).start()
 
@@ -320,12 +325,17 @@ class FolderTab(ctk.CTkFrame):
     def _open_output(self):
         if self._last_output_dir:
             _open_folder(self._last_output_dir)
+            self.after(300, self.winfo_toplevel().lift)
 
     def _log(self, msg: str):
         self.log_box.configure(state="normal")
         self.log_box.insert("end", msg + "\n")
         self.log_box.see("end")
         self.log_box.configure(state="disabled")
+
+    def _enable_open_btn(self):
+        self.btn_open.configure(state="normal", fg_color=("#3B8ED0", "#1F6AA5"),
+                                hover_color=("#36719F", "#144870"))
 
     def _update_progress(self, current: int, total: int, filename: str):
         self.progress.set(current / total if total else 0)
@@ -396,13 +406,12 @@ class FolderTab(ctk.CTkFrame):
                         f"(cần OCR — tính năng v2.0). Xem log để biết tên file.")
 
                 self._last_output_dir = dst
+                summary_text = (
+                    f"Hoàn tất  ✓{stats['success']}  "
+                    f"⏭{stats['skipped']}  ✗{stats['failed']}"
+                )
                 self.after(0, self.progress.set, 1.0)
-                self.after(0, self.progress_label.configure, {
-                    "text": (
-                        f"Hoàn tất  ✓{stats['success']}  "
-                        f"⏭{stats['skipped']}  ✗{stats['failed']}"
-                    )
-                })
+                self.after(0, lambda t=summary_text: self.progress_label.configure(text=t))
                 self.after(0, self._log,
                     f"✅ Hoàn tất — Tổng: {stats['total']} | "
                     f"Thành công: {stats['success']} | "
@@ -411,13 +420,13 @@ class FolderTab(ctk.CTkFrame):
                 )
                 if do_log:
                     self.after(0, self._log, f"📋 Log: {log_path}")
-                self.after(0, self.btn_open.configure, {"state": "normal"})
+                self.after(0, self._enable_open_btn)
 
             except Exception as ex:
                 self.after(0, self._log, f"❌ Lỗi nghiêm trọng: {_friendly_error(ex)}")
                 self.after(0, self.progress.set, 0)
             finally:
-                self.after(0, self.btn_convert.configure, {"state": "normal"})
+                self.after(0, lambda: self.btn_convert.configure(state="normal"))
 
         threading.Thread(target=run, daemon=True).start()
 
