@@ -1,0 +1,5 @@
+# Dependencies cho CI/testing (không cần GUI hay PyInstaller)
+markitdown==0.1.6
+pymupdf>=1.24.0
+numpy>=1.24,<2.0
+pytest>=8.0

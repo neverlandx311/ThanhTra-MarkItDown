@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from src.converter import DocumentConverter
+from src.converter import DocumentConverter, PdfScanError
 
 
 @pytest.fixture
@@ -118,3 +118,41 @@ class TestConvertAndSave:
 
         conv.convert_and_save(str(src), str(out))
         assert out.is_file()
+
+
+# ------------------------------------------------------------------
+# PdfScanError
+# ------------------------------------------------------------------
+
+class TestPdfScanError:
+
+    def test_pdf_scan_raises_pdf_scan_error(self, conv, tmp_path):
+        """PDF không có text layer phải raise PdfScanError, không phải Exception thường."""
+        import fitz
+        # Tạo PDF blank (không có text)
+        doc = fitz.open()
+        doc.new_page()
+        pdf_path = tmp_path / "blank.pdf"
+        doc.save(str(pdf_path))
+        doc.close()
+
+        with pytest.raises(PdfScanError):
+            conv.convert_file(str(pdf_path))
+
+    def test_pdf_scan_error_is_value_error(self):
+        """PdfScanError phải là subclass của ValueError."""
+        assert issubclass(PdfScanError, ValueError)
+
+    def test_pdf_with_text_does_not_raise(self, conv, tmp_path):
+        """PDF có text layer phải chuyển đổi thành công."""
+        import fitz
+        doc = fitz.open()
+        page = doc.new_page()
+        page.insert_text((72, 72), "Noi dung kiem thu PDF.")
+        pdf_path = tmp_path / "text.pdf"
+        doc.save(str(pdf_path))
+        doc.close()
+
+        result = conv.convert_file(str(pdf_path))
+        assert isinstance(result, str)
+        assert len(result) > 0
