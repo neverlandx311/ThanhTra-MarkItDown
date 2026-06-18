@@ -34,6 +34,7 @@ from src.converter import DocumentConverter, PdfScanError
 from src.folder_processor import FolderProcessor
 from src.logger import ConversionLogger
 from src.markdown_aggregator import aggregate_markdown_files
+from src.prompt_generator import generate_prompt_file
 
 # ─── Config ─────────────────────────────────────────────────────────────────
 
@@ -269,7 +270,10 @@ class FolderTab(ctk.CTkFrame):
         self.opt_aggregate.pack(side="left", padx=(0, 20))
         self.opt_log = ctk.CTkCheckBox(opt_frame, text="Ghi log")
         self.opt_log.select()
-        self.opt_log.pack(side="left")
+        self.opt_log.pack(side="left", padx=(0, 20))
+        self.opt_prompt = ctk.CTkCheckBox(opt_frame, text="Sinh file gợi ý AI (_prompt.md)")
+        self.opt_prompt.select()
+        self.opt_prompt.pack(side="left")
 
         # Progress
         self.progress = ctk.CTkProgressBar(self)
@@ -376,6 +380,7 @@ class FolderTab(ctk.CTkFrame):
 
         do_log       = bool(self.opt_log.get())
         do_aggregate = bool(self.opt_aggregate.get())
+        do_prompt    = bool(self.opt_prompt.get())
 
         save_config({"folder_src": src, "folder_dst": dst})
 
@@ -418,6 +423,14 @@ class FolderTab(ctk.CTkFrame):
                     f"Bỏ qua: {stats['skipped']} | "
                     f"Lỗi: {stats['failed']}"
                 )
+                if do_prompt and stats["success"] > 0:
+                    prompt_path = generate_prompt_file(
+                        dst,
+                        doc_count=stats["success"],
+                        folder_name=Path(src).name,
+                        version=VERSION,
+                    )
+                    self.after(0, self._log, f"💡 Gợi ý AI: {prompt_path}")
                 if do_log:
                     self.after(0, self._log, f"📋 Log: {log_path}")
                 self.after(0, self._enable_open_btn)
