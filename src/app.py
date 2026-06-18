@@ -273,18 +273,26 @@ class FolderTab(ctk.CTkFrame):
         self.opt_log.pack(side="left", padx=(0, 20))
         self.opt_prompt = ctk.CTkCheckBox(opt_frame, text="Sinh file gợi ý AI (_prompt.md)")
         self.opt_prompt.select()
-        self.opt_prompt.pack(side="left")
+        self.opt_prompt.pack(side="left", padx=(0, 20))
+
+        # OCR row
+        opt_frame2 = ctk.CTkFrame(self, fg_color="transparent")
+        opt_frame2.grid(row=3, column=0, columnspan=3, sticky="w", padx=16, pady=(0, 2))
+        self.opt_ocr = ctk.CTkCheckBox(
+            opt_frame2,
+            text="OCR cho PDF scan  (cần Tesseract — cài tại github.com/UB-Mannheim/tesseract)")
+        self.opt_ocr.pack(side="left")
 
         # Progress
         self.progress = ctk.CTkProgressBar(self)
         self.progress.set(0)
-        self.progress.grid(row=3, column=0, columnspan=3, pady=(6, 2), padx=16, sticky="ew")
+        self.progress.grid(row=4, column=0, columnspan=3, pady=(6, 2), padx=16, sticky="ew")
         self.progress_label = ctk.CTkLabel(self, text="", anchor="w")
-        self.progress_label.grid(row=4, column=0, columnspan=3, sticky="w", padx=16)
+        self.progress_label.grid(row=5, column=0, columnspan=3, sticky="w", padx=16)
 
         # Nút bấm
         btn_row = ctk.CTkFrame(self, fg_color="transparent")
-        btn_row.grid(row=5, column=0, columnspan=3, pady=(6, 4), padx=16, sticky="w")
+        btn_row.grid(row=6, column=0, columnspan=3, pady=(6, 4), padx=16, sticky="w")
         self.btn_convert = ctk.CTkButton(
             btn_row, text="⚙  Bắt đầu chuyển đổi",
             command=self._start, height=36, width=200)
@@ -296,11 +304,11 @@ class FolderTab(ctk.CTkFrame):
         self.btn_open.configure(state="disabled")
 
         # Log
-        self.log_box = ctk.CTkTextbox(self, height=190, state="disabled", wrap="word")
-        self.log_box.grid(row=6, column=0, columnspan=3, sticky="nsew", padx=16, pady=(4, 10))
+        self.log_box = ctk.CTkTextbox(self, height=180, state="disabled", wrap="word")
+        self.log_box.grid(row=7, column=0, columnspan=3, sticky="nsew", padx=16, pady=(4, 10))
 
         self.columnconfigure(1, weight=1)
-        self.rowconfigure(6, weight=1)
+        self.rowconfigure(7, weight=1)
 
     def _restore_paths(self):
         cfg = load_config()
@@ -381,6 +389,7 @@ class FolderTab(ctk.CTkFrame):
         do_log       = bool(self.opt_log.get())
         do_aggregate = bool(self.opt_aggregate.get())
         do_prompt    = bool(self.opt_prompt.get())
+        do_ocr       = bool(self.opt_ocr.get())
 
         save_config({"folder_src": src, "folder_dst": dst})
 
@@ -391,7 +400,8 @@ class FolderTab(ctk.CTkFrame):
             try:
                 log_path = str(Path(dst) / "_conversion.log")
                 logger   = ConversionLogger(log_path)
-                processor = FolderProcessor(logger=logger, progress_callback=on_progress)
+                processor = FolderProcessor(logger=logger, progress_callback=on_progress,
+                                            use_ocr=do_ocr)
 
                 self.after(0, self._log,
                     f"[{datetime.now():%H:%M:%S}] Bắt đầu xử lý: {src}")

@@ -8,10 +8,11 @@ from src.zip_handler import ZipHandler, ZipExtractionError
 
 
 class FolderProcessor:
-    def __init__(self, logger, progress_callback=None):
+    def __init__(self, logger, progress_callback=None, use_ocr: bool = False):
         self.converter = DocumentConverter()
         self.logger = logger
         self.progress_callback = progress_callback
+        self.use_ocr = use_ocr
 
     def scan_supported_files(self, source_folder: str) -> list:
         source_path = Path(source_folder)
@@ -54,7 +55,9 @@ class FolderProcessor:
                 try:
                     relative = file_path.relative_to(scan_root)
                     output_md = (out_root / relative).with_suffix(".md")
-                    self.converter.convert_and_save(str(file_path), str(output_md))
+                    self.converter.convert_and_save(
+                        str(file_path), str(output_md), use_ocr=self.use_ocr
+                    )
                     self.logger.success(str(relative))
                     stats["success"] += 1
                     stats["converted_pairs"].append((str(file_path), str(output_md)))

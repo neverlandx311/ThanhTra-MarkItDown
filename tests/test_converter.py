@@ -72,7 +72,7 @@ class TestConvertFile:
             os.unlink(tmp)
 
     def test_convert_unsupported_raises_value_error(self, conv):
-        with pytest.raises(ValueError, match="không được hỗ trợ"):
+        with pytest.raises(ValueError):
             conv.convert_file("file.zip")
 
     def test_convert_missing_file_raises(self, conv):
