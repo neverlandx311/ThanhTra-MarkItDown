@@ -95,6 +95,13 @@ class FolderProcessor:
                 self.logger.skipped(f"{file_path.name} — {exc}")
                 stats["skipped"] += 1
 
+            except PermissionError:
+                self.logger.error(
+                    f"{file_path.name} — File đang bị khóa bởi ứng dụng khác "
+                    f"(Word/Excel/Acrobat đang mở). Hãy đóng ứng dụng rồi thử lại."
+                )
+                stats["failed"] += 1
+
             except Exception as exc:
                 self.logger.error(f"{file_path.name} — {exc}")
                 stats["failed"] += 1
